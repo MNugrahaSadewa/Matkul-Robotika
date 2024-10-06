@@ -1,0 +1,24 @@
+roscore
+gedit ~/.bashrc
+rosrun rospy_tutorials talker
+rqt_graph
+rosrun turtlesim turtlesim_node
+rosrun turtlesim turtle_teleop_key
+
+mkadir catkin_ws
+cd catkin_ws
+mkdir src
+catkin_make
+source ~/catkin_ws/devel/setup.bash
+gedit ~/.bashrc
+
+catkin_create_pkg my_robot_controller rospy turtlesim
+sudo snap install code --classic
+code  .
+rosnode list
+cd catkin_ws/src/my_robot_controller
+mkdir scripts
+cd scripts/
+touch my_first_node.py
+chmod +x my_first_node.py
+python3 my_first_node.py 
