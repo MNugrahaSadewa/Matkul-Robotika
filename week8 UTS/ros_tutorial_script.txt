@@ -1,0 +1,42 @@
+
+
+# Step 1: Menyiapkan sources.list untuk ROS
+"Menambahkan ROS ke sources.list..."
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+# Step 2: Menambahkan key repositori ROS
+"Menambahkan key untuk repositori ROS..."
+sudo apt install -y curl
+curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+
+# Step 3: Update paket dan instalasi ROS Noetic Desktop-Full
+"Memperbarui paket dan menginstal ROS Noetic Desktop-Full..."
+sudo apt update
+sudo apt install -y ros-noetic-desktop-full
+
+# Step 4: Menambahkan ROS ke environment PATH
+"Menambahkan ROS ke PATH di ~/.bashrc..."
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+
+# Step 5: Memverifikasi instalasi dengan menjalankan roscore
+"Menjalankan roscore..."
+roscore
+
+# Step 6: Menjalankan Turtlesim
+"Menjalankan node Turtlesim..."
+rosrun turtlesim turtlesim_node
+
+# Step 7: Menjalankan kontrol Turtlesim dengan teleop
+"Menjalankan kontrol Turtlesim dengan teleop..."
+rosrun turtlesim turtle_teleop_key
+
+# Step 8: Menampilkan daftar topics
+"Menampilkan daftar topics yang sedang aktif..."
+rostopic list
+
+# Step 9: Mempublikasikan pesan ke topic /turtle1/cmd_vel
+"Mempublikasikan pesan ke /turtle1/cmd_vel untuk menggerakkan Turtlesim..."
+rostopic pub /turtle1/cmd_vel geometry_msgs/Twist "[2.0, 0.0, 0.0]" "[0.0, 0.0, 1.8]"
+
+"Tutorial ROS selesai dijalankan!"
