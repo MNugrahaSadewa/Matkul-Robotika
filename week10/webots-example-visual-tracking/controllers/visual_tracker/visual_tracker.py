@@ -57,6 +57,6 @@ while robot.step(timestep) != -1:
             motor_right.setVelocity(error * P_COEFFICIENT)
 
     else: # Bola tidak terdeteksi, hentikan robot
-        print("Bola  terdeteksi!")
+        print("Bola terdeteksi!")
         motor_left.setVelocity(0)
         motor_right.setVelocity(0)
