@@ -1,0 +1,608 @@
+arrays-and-vectors
+fn main() {
+
+    // Arrays: A collection of objects of the same type stored sequentially in memory
+    // You can declare an array, initialize all values, and the compiler will infer the length
+    let working_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    // You can also declare the array, initialize all values, and specify the length
+    let _working_days_num = [0; 5];
+
+    // We can also index into the array, using the position of the element.
+    println!("{}", working_days[0]);
+
+    // Vectors also store multiple values that have the same data type
+    // We can declare the vector, initialize all the values
+    let nephews_age = vec![14, 9, 0];
+    println!("Nephews age: {:?}", nephews_age);
+
+    // We can also declare the vector, intialize all values, and specify the length
+    let zeroes = vec![0; 5];
+    println!("Zeroes: {:?}", zeroes);
+
+    // We can add or remove values to a vector using the push or pop methods.
+    let mut names = Vec::new();
+
+    names.push("Will");
+    names.push("Isaac");
+    names.push("Sam");
+
+    println!("Names: {:?}", names);
+
+    names.pop();
+    println!("Names: {:?}", names);
+
+    // We can also access an element in the vector by its position in the vector
+    let mut fruit = vec!["Apple", "Melon", "Orange"];
+    let orange = fruit[2];
+    fruit[0] = "Strawberry";
+    println!("Fruits: {:?}, Orange = {}", fruit, orange);
+    
+}
+
+data-types
+// Classical Structs. Includes the field name and it's data type
+struct Student {
+    name: String,
+    level: u8,
+    remote: bool
+}
+
+// Tuple structs. Just the data types in this one
+struct Grades(char,char,char, f32);
+
+// Start of our main function. 'fn' is a keyword in Rust that denotes that this is a function.
+// Functions have parameters that we can pass in, and we can also return values from our function. More on this later.
+fn main() {
+
+    // the println! marco is a built-in function from Rust. This prints output to the console.
+    // We can use value substitution for {} arguments
+    println!("Hello, {} {}!", "Nugraha", "Sadewa");
+
+    // Variable bindings are immutable by default, meaning once we bind a value to variables, we can't change them.
+    // We can use the 'mut' keyword to make a variable mutuable (meaning we can change its value AFTER we declare and bind a value to it).
+    let mut age = 21;
+    let birth_year = 2003;
+
+    println!("I am {} years old", age);
+
+    // We can also declare a new variable that uses the name of an existing variable.
+    // This is called 'variable shadowing' as it 'shadows' the previous variable.
+    // It still exists, but you can't refer to it in this scope anymore.
+    let birth_year = birth_year - 1;
+    
+    age = 21;
+
+    println!("I am now {} years old", age);
+    println!("I was born in {}", birth_year);
+
+    // Rust is a statically typed language. The complier must know the exact data type for all variables in your code to compile and run.
+    // The compiler can usually infer the data type for a variable based on the bound value.
+    // Here, we're telling the compiler to create a nephew_age variable as a 32-bit integer.
+    // We specify the data type u32 after the variable name
+    let nephew_age: u32 = 14;
+    println!("My nephew is {} years old", nephew_age);
+
+    // Rust comes with some built in data types.
+
+    // Float
+    let _float: f32 = 4.0;
+    
+    println!("1 x 2 = {}", 1*2);
+
+    // Boolen: true or false values.
+    let is_bigger_num = 2 < 4;
+    println!("Is 2 < 4: {}", is_bigger_num);
+
+    // Strings
+    // Character types. A single character.
+    let first_char: char = 'M';
+    let last_char: char = 'a';
+
+    let second_char = 'u';
+
+    // Strings which are series of characters.
+    // Most of the time, String literals are of type &str
+    let my_name = "Nugraha";
+
+    println!("{} is the first character, {} is the last character, {} is the second character of my name {}", first_char, last_char, second_char, my_name);
+
+    // Tuples are a grouping of values of different types collected into one compound value.
+    // The individual values inside a tuple are called elements.
+    // Tuples have a fixed length. Once declared, it can't grow or shrink in size, elements can't be added or removed.
+    let my_dog = ("bobi", 15, false);
+
+    println!("My dog's name was {}, he was {} years old, is he alive? {}", my_dog.0, my_dog.1, my_dog.2);
+    
+    // After we define a struct type, we can use it by creating an instance of the type and specifying the values for each field.
+    let student_1 = Student{
+        name: String::from("Nugraha Sadewa"),
+        remote: true,
+        level: 5
+    };
+
+    let grades = Grades('A','A','B',3.5);
+
+    // For classical structs, we can get the value by referring to the name of the property
+    println!("{}, is a level {} programmer. Does he work remotely: {}",
+        student_1.name, student_1.level, student_1.remote);
+
+    // For tuple structs, we get the value by referring to its position in the index.
+    println!("{},{},{},GPA = {}", grades.0, grades.1, grades.2, grades.3);
+}
+
+Event-Driven
+
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
+
+enum Event {
+    ObstacleDetected,
+    GoalChanged(i32, i32),
+}
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    // Simulasi sensor penghalang
+    let sensor_tx = tx.clone();
+    thread::spawn(move || {
+        thread::sleep(Duration::from_secs(2));
+        sensor_tx.send(Event::ObstacleDetected).unwrap();
+    });
+
+    // Simulasi perubahan tujuan
+    let goal_tx = tx.clone();
+    thread::spawn(move || {
+        thread::sleep(Duration::from_secs(4));
+        goal_tx.send(Event::GoalChanged(10, 15)).unwrap();
+    });
+
+    let mut position = (0, 0);
+
+    loop {
+        match rx.recv() {
+            Ok(Event::ObstacleDetected) => {
+                println!("Penghalang terdeteksi! Robot berhenti untuk menghindar.");
+            }
+            Ok(Event::GoalChanged(x, y)) => {
+                println!("Tujuan baru diterima: ({}, {}). Robot bergerak ke tujuan.", x, y);
+                position = (x, y);
+            }
+            Err(_) => break,
+        }
+
+        println!("Posisi robot saat ini: ({}, {})", position.0, position.1);
+    }
+}
+
+hash-map
+
+fn main() {
+    
+    // The 'use' command brings in the HashMap definition from the 'collections' part of the Rust standard library.
+    use std::collections::HashMap;
+    // We create an empty hash map using the HashMap::new() method.
+    let mut items: HashMap<String, String> = HashMap::new();
+
+    // We add elements to the hash map by using the insert(<key>, <value>) method
+    items.insert(String::from("One"), String::from("Book"));
+    items.insert(String::from("Two"), String::from("Keyboard"));
+    items.insert(String::from("Three"), String::from("Sunglasses"));
+
+    // After we add data to our hash map, we can retrieve a specific value for a key with the get(<key>) method.
+    let keyboard = items.get("Two");
+    println!("{:?}", keyboard);
+
+    // We can also remove entries from a hash map by using the .remove(<key>) method.
+    // If you try to retrieve a removed value from the hash map, 'None' will be returned.
+    items.remove("Three");
+    
+    println!("{:?}", items.get("Three"));
+}
+
+hello-cargo
+
+fn main() {
+    println!("Hello, world!");
+}
+
+hello-world
+
+fn main() {
+    println!("Hello, World!");
+}
+
+if-else
+
+fn main() {
+    // Basic if/else statement
+    if 1 == 2 {
+        println!("The numbers are equal");
+    } else {
+        println!("The numbers are not equal");
+    }
+
+    // Binding a value to a variable using an if/else statement
+    let sunny_day = true;
+    let take_jacket = if sunny_day {
+        "Don't take a jacket"
+    } else {
+        "Take a jacket"
+    };
+
+    println!("{}", take_jacket);
+
+    // Using multiple if/else statements to evaluate multiple conditional statements
+    let num = 100;
+    let out_of_range: bool;
+
+    if num < 0 {
+        out_of_range = true;
+    } else if num == 0 {
+        out_of_range = true
+    } else if num > 101 {
+        out_of_range = true;
+    } else {
+        out_of_range = false
+    }
+    println!("{}", out_of_range);
+}
+
+loops
+fn main() {
+    // loops, run forever without a break statement
+    /*
+    loop {
+        println!("Hello!");
+    }
+    */
+
+    // Using a break condition to stop a loop expression.
+    // By using break, you can stop repeating the actions in the expression body
+    // and also return a value at the break point
+    let mut counter = 1;
+    let loop_stop = loop {
+        counter *= 4;
+        if counter > 100 {
+            break counter;
+        }
+    };
+
+    println!("Break the loop at counter = {}", loop_stop);
+
+    // While loops use conditional expressions. The loop repeats as long as the conditional expression is true.
+    let mut num = 0;
+    while num < 10 {
+        println!("Hello GUYS !");
+        num = num + 1;
+    }
+
+    // For loops use an iterator to process a collection of items.
+    let shopping_list = ["milk", "cheese", "bread", "apples"];
+
+    // The vale of the iterator is bound to the result of the iter() method.
+    for item in shopping_list.iter() {
+        println!("The next item on my shopping is {}", item);
+    }
+
+    // Another easy way to create an iterator is to use the range notation a..b
+    // Iterator starts at the 'a' value and continues one by one to the value of b, without using the b value.
+    for number in 0..10 {
+        println!("Number {}", number);
+    }
+}
+prioritas
+use std::collections::BinaryHeap;
+use std::cmp::Ordering;
+
+#[derive(Eq, PartialEq)]
+struct Task {
+    priority: u32,
+    description: String,
+}
+
+impl Ord for Task {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.priority.cmp(&self.priority) // Higher priority comes first
+    }
+}
+
+impl PartialOrd for Task {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn main() {
+    let mut task_queue = BinaryHeap::new();
+
+    task_queue.push(Task {
+        priority: 5,
+        description: String::from("Mengisi baterai"),
+    });
+    task_queue.push(Task {
+        priority: 10,
+        description: String::from("Mengambil barang di lokasi A"),
+    });
+    task_queue.push(Task {
+        priority: 1,
+        description: String::from("Melakukan kalibrasi sensor"),
+    });
+
+    while let Some(task) = task_queue.pop() {
+        println!("Menyelesaikan tugas: {} (Prioritas: {})", task.description, task.priority);
+    }
+}
+Probabilistik
+use rand::Rng;
+
+fn main() {
+    let mut rng = rand::thread_rng();
+    let mut position = (0, 0);
+    let goal = (10, 10);
+
+    while position != goal {
+        let uncertainty_x: f64 = rng.gen_range(-0.5..0.5);
+        let uncertainty_y: f64 = rng.gen_range(-0.5..0.5);
+
+        let step_x = if position.0 < goal.0 { 1 } else { 0 };
+        let step_y = if position.1 < goal.1 { 1 } else { 0 };
+
+        position.0 = ((position.0 as f64 + step_x as f64 + uncertainty_x).round() as i32).max(0) as usize;
+        position.1 = ((position.1 as f64 + step_y as f64 + uncertainty_y).round() as i32).max(0) as usize;
+
+        println!("Posisi saat ini: ({}, {})", position.0, position.1);
+    }
+
+    println!("Robot mencapai tujuan di ({}, {}).", goal.0, goal.1);
+}
+
+robotfinding
+use std::collections::{BinaryHeap, HashMap};
+use std::cmp::Ordering;
+
+// Struktur untuk menyimpan posisi pada grid
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct Point {
+    x: usize,
+    y: usize,
+}
+
+// Struktur untuk node dalam algoritma A*
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Node {
+    point: Point,
+    g_cost: usize, // Biaya dari start ke node ini
+    h_cost: usize, // Estimasi biaya ke tujuan (heuristik)
+    parent: Option<Point>,
+}
+
+impl Node {
+    fn f_cost(&self) -> usize {
+        self.g_cost + self.h_cost
+    }
+}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.f_cost().cmp(&self.f_cost()) // Dibalik agar BinaryHeap menjadi min-heap
+    }
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn astar(grid: &[Vec<bool>], start: Point, goal: Point) -> Option<Vec<Point>> {
+    let mut open_set = BinaryHeap::new();
+    let mut closed_set: HashMap<Point, Node> = HashMap::new();
+
+    open_set.push(Node {
+        point: start,
+        g_cost: 0,
+        h_cost: manhattan_distance(start, goal),
+        parent: None,
+    });
+
+    while let Some(current) = open_set.pop() {
+        if current.point == goal {
+            // Rekonstruksi jalur dari tujuan ke start
+            let mut path = vec![current.point];
+            let mut parent = current.parent;
+            while let Some(p) = parent {
+                path.push(p);
+                parent = closed_set.get(&p).unwrap().parent;
+            }
+            path.reverse();
+            return Some(path);
+        }
+
+        closed_set.insert(current.point, current.clone());
+
+        for neighbor in get_neighbors(grid, current.point) {
+            if closed_set.contains_key(&neighbor) {
+                continue;
+            }
+
+            let g_cost = current.g_cost + 1;
+
+            if let Some(existing) = open_set.iter().find(|node| node.point == neighbor) {
+                if g_cost < existing.g_cost {
+                    continue;
+                }
+            }
+
+            open_set.push(Node {
+                point: neighbor,
+                g_cost,
+                h_cost: manhattan_distance(neighbor, goal),
+                parent: Some(current.point),
+            });
+        }
+    }
+
+    None
+}
+
+fn get_neighbors(grid: &[Vec<bool>], point: Point) -> Vec<Point> {
+    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+    let mut neighbors = Vec::new();
+
+    for &(dx, dy) in &directions {
+        let nx = point.x as isize + dx;
+        let ny = point.y as isize + dy;
+
+        if nx >= 0 && ny >= 0 {
+            let nx = nx as usize;
+            let ny = ny as usize;
+
+            if nx < grid.len() && ny < grid[0].len() && grid[nx][ny] {
+                neighbors.push(Point { x: nx, y: ny });
+            }
+        }
+    }
+
+    neighbors
+}
+
+fn manhattan_distance(p1: Point, p2: Point) -> usize {
+    ((p1.x as isize - p2.x as isize).abs() + (p1.y as isize - p2.y as isize).abs()) as usize
+}
+
+fn main() {
+    let grid = vec![
+        vec![true, true, true, true, true],
+        vec![true, false, false, false, true],
+        vec![true, true, true, false, true],
+        vec![true, false, true, true, true],
+        vec![true, true, true, true, true],
+    ];
+
+    let start = Point { x: 0, y: 0 };
+    let goal = Point { x: 4, y: 4 };
+
+    if let Some(path) = astar(&grid, start, goal) {
+        println!("Jalur ditemukan!");
+        for step in path {
+            println!("({}, {})", step.x, step.y);
+        }
+    } else {
+        println!("Tidak ada jalur yang ditemukan.");
+    }
+}
+
+robot input
+use std::io;
+
+fn main() {
+    let mut position = (0, 0); // Posisi awal robot
+
+    loop {
+        println!("Posisi saat ini: ({}, {})", position.0, position.1);
+        println!("Masukkan gerakan (w/a/s/d untuk atas/kiri/bawah/kanan, q untuk keluar):");
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Gagal membaca input");
+
+        match input.trim() {
+            "w" => position.1 += 1,
+            "a" => position.0 -= 1,
+            "s" => position.1 -= 1,
+            "d" => position.0 += 1,
+            "q" => {
+                println!("Keluar program. Posisi terakhir: ({}, {})", position.0, position.1);
+                break;
+            }
+            _ => println!("Input tidak valid! Gunakan w/a/s/d/q."),
+        }
+    }
+}
+
+sederhana
+use std::collections::VecDeque;
+
+#[derive(Debug, Clone, Copy, PartialEq)] // Tambahkan PartialEq di sini
+struct Point {
+    x: usize,
+    y: usize,
+}
+
+fn is_valid_move(x: isize, y: isize, grid: &[Vec<u8>], visited: &[Vec<bool>]) -> bool {
+    x >= 0
+        && y >= 0
+        && x < grid.len() as isize
+        && y < grid[0].len() as isize
+        && grid[x as usize][y as usize] == 0
+        && !visited[x as usize][y as usize]
+}
+
+fn bfs_pathfinding(grid: &[Vec<u8>], start: Point, goal: Point) -> Option<Vec<Point>> {
+    let mut queue = VecDeque::new();
+    let mut visited = vec![vec![false; grid[0].len()]; grid.len()];
+    let mut parent = vec![vec![None; grid[0].len()]; grid.len()];
+
+    queue.push_back(start);
+    visited[start.x][start.y] = true;
+
+    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
+    while let Some(current) = queue.pop_front() {
+        if current == goal {
+            // Rekonstruksi jalur dari tujuan ke awal
+            let mut path = Vec::new();
+            let mut current = Some(goal);
+
+            while let Some(c) = current {
+                path.push(c);
+                current = parent[c.x][c.y];
+            }
+
+            path.reverse();
+            return Some(path);
+        }
+
+        for &(dx, dy) in &directions {
+            let nx = current.x as isize + dx;
+            let ny = current.y as isize + dy;
+
+            if is_valid_move(nx, ny, grid, &visited) {
+                let next = Point {
+                    x: nx as usize,
+                    y: ny as usize,
+                };
+
+                queue.push_back(next);
+                visited[next.x][next.y] = true;
+                parent[next.x][next.y] = Some(current);
+            }
+        }
+    }
+
+    None // Tidak ada jalur ditemukan
+}
+
+fn main() {
+    let grid = vec![
+        vec![0, 0, 0, 1, 0],
+        vec![1, 1, 0, 1, 0],
+        vec![0, 0, 0, 0, 0],
+        vec![0, 1, 1, 1, 0],
+        vec![0, 0, 0, 1, 0],
+    ];
+
+    let start = Point { x: 0, y: 0 };
+    let goal = Point { x: 4, y: 4 };
+
+    if let Some(path) = bfs_pathfinding(&grid, start, goal) {
+        println!("Jalur ditemukan:");
+        for point in path {
+            println!("({}, {})", point.x, point.y);
+        }
+    } else {
+        println!("Tidak ada jalur yang ditemukan.");
+    }
+}
