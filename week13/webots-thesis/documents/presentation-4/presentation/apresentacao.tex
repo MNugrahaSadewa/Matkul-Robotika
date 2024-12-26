@@ -1,0 +1,221 @@
+\documentclass{beamer}
+
+\mode<presentation>{
+\usetheme{Dresden}
+\setbeamercovered{transparent}
+\usecolortheme{lsc}
+}
+
+\mode<handout>{
+  % tema simples para ser impresso
+  \usepackage[bar]{beamerthemetree}
+  % Colocando um fundo cinza quando for gerar transparências para serem impressas
+  % mais de uma transparência por página
+  \beamertemplatesolidbackgroundcolor{black!5}
+}
+
+\usepackage{amsmath,amssymb}
+\usepackage[brazil]{varioref}
+\usepackage[english,brazil]{babel}
+\usepackage[utf8]{inputenc}
+%\usepackage[latin1]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{colortbl}
+\usepackage[ruled, linesnumbered]{algorithm2e}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\newcommand\Fontvi{\fontsize{6}{10}\selectfont}
+
+\beamertemplatetransparentcovereddynamic
+
+\title[Machine Learning for Probabilistic Robotics with Webots]{Machine Learning for Probabilistic Robotics with Webots}
+\author[Joan Gerard]{%
+  Joan Gerard\inst{1} \\
+  Promotor: Prof. Gianluca Bontempi \inst{1}}
+  \institute[ULB]{
+  \inst{1}%
+     Universit\'e Libre de Bruxelles}
+
+% Se comentar a linha abaixo, irá aparecer a data quando foi compilada a apresentação  
+\date{February 6, 2020}
+
+
+
+\AtBeginSection[]{
+  \begin{frame}<beamer>
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+
+\section{Training Neural Network}
+\frame{
+	\frametitle{What is new?}
+	\begin{itemize}
+		\item Capture the real position of the robot + sensors measurements each 25 steps only
+		\item In 10 minutes simulation (fast mode) 65342 samples captured
+		\item All sensors has a lookup table with $\sigma = 0.2$ ($\pm2$ cm)
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Preparing Data}
+	\begin{itemize}
+		\item Normalize data
+		\item Delete NA rows
+		\item Shuffle data
+	\end{itemize}
+}
+
+\pgfdeclareimage[height=3cm]{MAE}{figs/mae.png}
+\pgfdeclareimage[height=3cm]{LOSS}{figs/loss.png}
+\frame{
+	\frametitle{Neural Network Configuration}
+	\begin{itemize}
+		\item One hidden layer with "relu" as optimizer
+		\item 150 ephochs
+		\item 5-fold 
+		\item 10 hidden neurons
+		\item Loss: MSE
+		\item Metric: MAE
+	\end{itemize}
+	\pgfuseimage{MAE}
+	\pgfuseimage{LOSS}
+}
+
+\pgfdeclareimage[height=3cm]{MAENN}{figs/nn.png}
+\pgfdeclareimage[height=3cm]{NMSENN}{figs/nmse.png}
+\frame{
+	\frametitle{Tuning hidden neurons}
+	\begin{itemize}
+		\item 3-fold
+		\item 75 epochs
+		\item Number of Neurons: 2, 5, 8, 12, 16
+	\end{itemize}
+	\pgfuseimage{MAENN}
+	\pgfuseimage{NMSENN}
+}
+
+\frame{
+	\frametitle{Final model}
+	\begin{itemize}
+		\item NN trained with 75 epochs
+		\item 12 neurons in hidden layer
+	\end{itemize}
+}
+
+\section{Particles Filter}
+
+\frame{
+	\frametitle{Configuration}
+	\begin{itemize}
+		\item 50 particles used
+		\item The initial position of all the particles are
+		determined by the initial position of the robot.
+	\end{itemize}
+}
+
+
+\frame{
+	\frametitle{Pseudo code algorithm}
+	\begin{small}
+	\begin{algorithm}[H]
+
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{robotState (odometry data), sensorsData}
+\Output{particles}
+\BlankLine
+  deltaMove $\leftarrow$ robotState - previousRobotState\\
+  particles.state = particles.state + deltaMove\\
+  addRandomMove(particles.state)\\
+  \ForEach{particle $\in$ particles}{
+   	particle.weight $\leftarrow$ predictError(particle.state, sensorsData)\\
+  }
+  
+  invertParticlesWeight(particles)\\
+  normalizeWeights(particles)\\
+  particles = resamplingBasedOnWeights(prob=particles.weight, replace=True)\\
+  previousRobotState $\leftarrow$ robotState \\
+  \Return particles
+  
+\end{algorithm}
+\end{small}
+}
+
+\pgfdeclareimage[height=3cm]{PP1}{figs/pp_1.png}
+\pgfdeclareimage[height=3cm]{PP2}{figs/pp_2.png}
+\frame{
+	\frametitle{Add Random Move}
+	\begin{itemize}
+		\item Given the state of each particle $(x, y, \theta)$ it adds a random value
+		following a normal distribution.
+		\item For $(x, y)$: $\mathcal{N}(0, 0.008)$
+		\item For $\theta: \mathcal{N}(0, 0.015)$
+		\item Tested with other values as well. Left image corresponds to $\mathcal{N}(0, 0.08)$ for $(x, y)$ and $\mathcal{N}(0, 1.5)$ for $\theta$. 
+		Right image corresponds to the values mentioned above.
+	\end{itemize}
+	\begin{center}
+	\pgfuseimage{PP1}
+	\pgfuseimage{PP2}
+	\end{center}
+}
+
+\frame{
+	\frametitle{Predict Error}
+	\begin{itemize}
+		\item Let $y_i$ be the $i$th sensor measurement
+		\item Let $\hat{y_i}$ be the prediction of the $i$th sensor measurement
+		\item Normalize the inputs: $(x, y, \theta)$ using \href{https://stats.stackexchange.com/questions/70801/how-to-normalize-data-to-0-1-range}{this}  as a reference
+		\item Make a prediction using the neural network and the normalized inputs
+		\item Denormalize the outputs
+		\item Calculate error: $\sum_{i=1}^{i=8}(\hat{y_i} - y_i)^2$
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Invert Particles Weight}
+	\begin{itemize}
+		\item The prediction error algorithm will return a low value when the predicted sensor measurements will be close
+		to the true sensor measurements. Thus the closer the particle to the real state, the lower its weight. We want exactly the opposite.
+		\item To invert this we can apply:
+		
+	\end{itemize}
+	
+	\begin{algorithm}[H]
+		maxWeight = max(particles.weight)\\
+		minWeight = min(particles.weight)\\
+		particles.weight = (maxWeight + minWeight) - particles.weight\\
+	\end{algorithm}
+}
+
+\section{Update Odometry Values}
+
+\pgfdeclareimage[height=3cm]{APP}{figs/app.png}
+\frame {
+	\begin{itemize}
+		\item The best particle will be the one whose weight is lower than the rest of the particles
+		\item Each 25 steps the best particle is selected and the odometry data is updated with the selected particle's state.
+		\item Results
+		
+	\end{itemize}
+	\begin{center}
+     		\pgfuseimage{APP}
+     	\end{center}
+	
+}
+
+\end{document}
