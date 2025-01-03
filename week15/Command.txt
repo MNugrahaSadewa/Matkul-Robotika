@@ -1,0 +1,60 @@
+Chapter 2
+# 1. Menjalankan Publisher dan Subscriber untuk Topik
+# Menjalankan Topic Publisher
+rosrun mastering_ros_demo_pkg demo_topic_publisher
+# Penjelasan: Node ini menerbitkan data ke topik tertentu secara berkala.
+
+# Menjalankan Topic Subscriber
+rosrun mastering_ros_demo_pkg demo_topic_subscriber
+# Penjelasan: Node ini mendengarkan dan menerima data dari topik yang diterbitkan oleh publisher.
+
+# 2. Menjalankan Publisher dan Subscriber untuk Pesan (Message)
+# Menjalankan Message Publisher
+rosrun mastering_ros_demo_pkg demo_msg_publisher
+# Penjelasan: Node ini menerbitkan pesan yang sesuai dengan format yang telah didefinisikan ke topik.
+
+# Menjalankan Message Subscriber
+rosrun mastering_ros_demo_pkg demo_msg_subscriber
+# Penjelasan: Node ini menerima dan menampilkan pesan yang diterima dari publisher.
+
+# 3. Menjalankan Service Server dan Client
+# Menjalankan Service Server
+rosrun mastering_ros_demo_pkg demo_service_server
+# Penjelasan: Node ini menunggu permintaan dari client dan memberikan respons sesuai layanan yang didefinisikan.
+
+# Menjalankan Service Client
+rosrun mastering_ros_demo_pkg demo_service_client
+# Penjelasan: Node ini mengirimkan permintaan ke service server dan menunggu respons.
+
+Chapter 5
+# 1. Menjalankan ROS Core
+roscore
+
+# 2. Masuk ke direktori CoppeliaSim
+cd ~/Downloads/CoppeliaSim_Edu_V4_8_0_rev0_Ubuntu20_04
+
+# 3. Menjalankan CoppeliaSim
+./coppeliaSim.sh
+
+# 4. Menjalankan RQT Image Viewer (untuk visualisasi gambar dari kamera robot)
+rqt_image_view
+
+# 5. Mengontrol posisi sendi elbow_pitch dengan mengirimkan data ke topik ROS
+rostopic pub /csim_demo/seven_dof_arm/elbow_pitch/cmd std_msgs/Float32 "data: 1.0"
+
+# 6. Memverifikasi status posisi sendi elbow_pitch
+rostopic echo /csim_demo/seven_dof_arm/elbow_pitch/state
+
+Chapter 6
+roslaunch seven_dof_arm_config demo.launch
+roslaunch seven_dof_arm_gazebo seven_dof_arm_bringup_moveit.launch
+
+Chapter7
+# Perintah untuk menjalankan simulasi robot lengan 7 DOF
+roslaunch seven_dof_arm_config demo.launch
+
+# Perintah untuk menambahkan objek kolisi
+rosrun seven_dof_arm_test add_collision_object
+
+# Perintah untuk menjalankan tugas Pick and Place
+rosrun seven_dof_arm_test pick_place
